@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Satellite Pass Predictor: when does the ISS fly over you?</title>
+    <meta name="description" content="Free satellite pass predictor: next ISS, weather and amateur radio satellite passes over your location with AOS/LOS, max elevation, sky plot, ground track map and Doppler shift. Live TLEs from CelesTrak. Runs in your browser." />
+    <meta name="keywords" content="satellite pass predictor, ISS pass times, satellite tracker, TLE, CelesTrak, amateur radio satellites, Doppler shift, sky plot, NOAA, Meteor-M, AOS LOS, satellite.js" />
+    <meta name="author" content="Volodymyr Kopytsia" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="canonical" href="https://hermes98761234.github.io/satellite-pass-predictor/" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-title" content="Sat Passes" />
+
+    <!-- Open Graph / Facebook / Telegram / Slack -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Satellite Pass Predictor" />
+    <meta property="og:url" content="https://hermes98761234.github.io/satellite-pass-predictor/" />
+    <meta property="og:title" content="When does the ISS fly over you?" />
+    <meta property="og:description" content="Next passes of the ISS, weather and amateur radio satellites over your location, with AOS/LOS, sky plot, ground track and Doppler." />
+    <meta property="og:image" content="https://hermes98761234.github.io/satellite-pass-predictor/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A polar sky plot of a satellite pass, with the headline: when does the ISS fly over you?" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="uk_UA" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="When does the ISS fly over you?" />
+    <meta name="twitter:description" content="Satellite passes, sky plot, ground track and Doppler. Runs in your browser." />
+    <meta name="twitter:image" content="https://hermes98761234.github.io/satellite-pass-predictor/og-image.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Satellite Pass Predictor",
+        "url": "https://hermes98761234.github.io/satellite-pass-predictor/",
+        "description": "Predicts passes of the ISS, weather and amateur radio satellites over your location from CelesTrak TLEs, with sky plot, ground track map and Doppler shift.",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript and Web Workers",
+        "inLanguage": ["en", "uk"],
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Person", "name": "Volodymyr Kopytsia" }
+      }
+    </script>
+  </head>
+  <body>
+    <noscript>This app needs JavaScript.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

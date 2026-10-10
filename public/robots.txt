@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hermes98761234.github.io/satellite-pass-predictor/sitemap.xml
