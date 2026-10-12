@@ -14,7 +14,8 @@ When can you see or hear the ISS, a weather satellite or an amateur radio satell
 - **Polar sky plot** of the selected pass (north up, zenith in the centre) with AOS, LOS, peak and the satellite's live position.
 - **Ground track map** with the pass highlighted, the horizon footprint at peak elevation and the live sub-satellite point. Click the map to move your location.
 - **Doppler**: enter a downlink (and optionally an uplink) in MHz, or use the built-in defaults for ISS, SO-50, RS-44, FO-29, AO-7, AO-73, Meteor-M and NOAA APT. You get a shift curve, a table at AOS / peak / LOS, the frequency to receive on, and the frequency to transmit on.
-- **Live data**: CelesTrak GP API groups (stations, amateur, weather, CubeSats, visual, geo), lookup by name or NORAD id, cached for 2 h in the browser, with a bundled sample for offline first load. Paste any TLE text too.
+- **Every CelesTrak satellite**: all ~17 000 active satellites in one click, plus all 47 CelesTrak groups (stations, military, radar calibration, weather, Earth resources, SAR, Starlink, OneWeb, Kuiper, Qianfan, Iridium, GPS, GLONASS, Galileo, BeiDou, amateur, CubeSats, science, debris clouds and more). Look up any object by name or NORAD id, or paste TLE text. Element sets are cached for 2 h in the browser, and a bundled sample covers offline first load.
+- **Filter by type and country**: pick a type (for example *Military*, *Weather* or *GPS operational*) and/or a country or operator (from the CelesTrak SATCAT owner field, cached for a week), then combine with a name filter. Each satellite in the list shows its owner code.
 - **Location** by browser geolocation, typed coordinates or a map click; Maidenhead locator shown.
 - **English and Ukrainian**, light, dark or system theme, local time or UTC. Settings are remembered in the browser; no backend, no tracking.
 

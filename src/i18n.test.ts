@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { tr, UK } from './i18n'
+import { CATEGORIES } from './lib/celestrak'
 
 /** Literal strings passed to t('…') or N('…') anywhere in src/, excluding tests. */
 function usedKeys(dir = 'src'): string[] {
@@ -35,5 +36,9 @@ describe('UK dictionary', () => {
     const keys = [...usedKeys()]
     expect(keys.length).toBeGreaterThan(2)
     expect(keys.filter((k) => !(k in UK))).toEqual([])
+  })
+  it('translates every satellite type and group label', () => {
+    const labels = CATEGORIES.flatMap((c) => [c.label, ...c.groups.map((g) => g.label)])
+    expect(labels.filter((k) => !(k in UK))).toEqual([])
   })
 })

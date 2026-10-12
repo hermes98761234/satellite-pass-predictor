@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { loadState, saveState, type AppState, type Lang, type Observer, type Settings, type Theme, type TimeZoneMode } from './lib/model'
 import { tr, type T } from './i18n'
-import { fetchTles, GROUPS, type Query } from './lib/celestrak'
+import { ALL_ACTIVE, CATEGORIES, fetchOwners, fetchTles, type Query } from './lib/celestrak'
+import { ownerName } from './lib/owners'
 import { parseTles, type Tle } from './lib/tle'
 import { SAMPLE_TLE } from './lib/sample'
 import { FREQS } from './lib/freqs'
@@ -48,6 +49,9 @@ export default function App() {
   const [status, setStatus] = useState<Status>(null)
   const [busyLoad, setBusyLoad] = useState(false)
   const [filter, setFilter] = useState('')
+  const [typeFilter, setTypeFilter] = useState('')
+  const [country, setCountry] = useState('')
+  const [owners, setOwners] = useState<Record<number, string> | null>(null)
   const [lookup, setLookup] = useState('')
   const [paste, setPaste] = useState('')
   const [nonce, setNonce] = useState(0)
@@ -88,6 +92,12 @@ export default function App() {
   useEffect(() => {
     void (async () => {
       for (const g of ['stations', 'amateur', 'weather']) await load({ kind: 'group', value: g }, { quiet: true })
+      // Owner codes for the country filter (cached for a week).
+      try {
+        setOwners(await fetchOwners())
+      } catch {
+        /* the country filter stays empty until the next visit */
+      }
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -101,8 +111,33 @@ export default function App() {
 
   const toggle = (id: number) => update({ selected: selSet.has(id) ? selected.filter((x) => x !== id) : [...selected, id] })
 
+  const catIds = useMemo(() => new Set(catalog.map((c) => c.norad)), [catalog])
+  const typeIds = typeFilter ? groups[typeFilter] : undefined
   const q = filter.trim().toLowerCase()
-  const shown = catalog.filter((c) => !q || c.name.toLowerCase().includes(q) || String(c.norad) === q).sort((a, b) => Number(selSet.has(b.norad)) - Number(selSet.has(a.norad)) || a.name.localeCompare(b.name)).slice(0, 150)
+  const matches = useMemo(() => {
+    const typeSet = typeFilter ? new Set(typeIds ?? []) : null
+    return catalog
+      .filter((c) => (!q || c.name.toLowerCase().includes(q) || String(c.norad) === q) && (!typeSet || typeSet.has(c.norad)) && (!country || owners?.[c.norad] === country))
+      .sort((a, b) => Number(selSet.has(b.norad)) - Number(selSet.has(a.norad)) || a.name.localeCompare(b.name))
+  }, [catalog, q, typeFilter, typeIds, country, owners, selSet])
+  const shown = matches.slice(0, 150)
+  const countries = useMemo(() => {
+    const n: Record<string, number> = {}
+    for (const o of Object.values(owners ?? {})) n[o] = (n[o] ?? 0) + 1
+    return Object.entries(n)
+      .map(([code, count]) => ({ code, count, name: ownerName(code, settings.lang) }))
+      .sort((a, b) => a.name.localeCompare(b.name, settings.lang))
+  }, [owners, settings.lang])
+
+  const onType = (g: string) => {
+    setTypeFilter(g)
+    if (g && !groups[g]) void load({ kind: 'group', value: g })
+  }
+  const onCountry = (c: string) => {
+    setCountry(c)
+    // A country's satellites are spread over many groups, so pull in the whole active catalog once.
+    if (c && !groups[ALL_ACTIVE]) void load({ kind: 'group', value: ALL_ACTIVE })
+  }
 
   const onLocate = () => {
     if (!navigator.geolocation) return setStatus({ kind: 'err', text: t('Geolocation is not available in this browser.') })
@@ -205,13 +240,33 @@ export default function App() {
             </section>
 
             <section className="section">
-              <h3>{t('Satellites')} ({selected.filter((id) => catalog.some((c) => c.norad === id)).length})</h3>
+              <h3>{t('Satellites')} ({selected.filter((id) => catIds.has(id)).length})</h3>
               <div className="row">
                 <button className="small" onClick={() => update({ selected: [25544] })}>ISS</button>
                 <button className="small" disabled={busyLoad} onClick={() => void quick('weather')}>{t('Weather')}</button>
                 <button className="small" disabled={busyLoad} onClick={() => void quick('amateur')}>{t('Amateur')}</button>
-                <button className="small" onClick={() => update({ selected: [...new Set([...selected, ...shown.map((s) => s.norad)])].slice(0, 400) })}>{t('Select shown')}</button>
+                <button className="small" onClick={() => update({ selected: [...new Set([...selected, ...matches.map((s) => s.norad)])].slice(0, 400) })}>{t('Select shown')}</button>
                 <button className="small" onClick={() => update({ selected: [] })}>{t('Clear')}</button>
+              </div>
+              <div className="grid2">
+                <label className="field">
+                  <span>{t('Type')}</span>
+                  <select value={typeFilter} disabled={busyLoad} onChange={(e) => onType(e.target.value)}>
+                    <option value="">{t('All types')}</option>
+                    {CATEGORIES.map((c) => (
+                      <optgroup key={c.label} label={t(c.label)}>
+                        {c.groups.map((g) => <option key={g.id} value={g.id}>{t(g.label)}</option>)}
+                      </optgroup>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
+                  <span>{t('Country / owner')}</span>
+                  <select value={country} disabled={busyLoad} onChange={(e) => onCountry(e.target.value)}>
+                    <option value="">{owners ? t('All countries') : t('Loading countries…')}</option>
+                    {countries.map((c) => <option key={c.code} value={c.code}>{c.name} ({c.count})</option>)}
+                  </select>
+                </label>
               </div>
               <input type="search" className="wide" placeholder={t('Filter by name or NORAD id')} value={filter} onChange={(e) => setFilter(e.target.value)} aria-label={t('Filter by name or NORAD id')} />
               <ul className="satlist">
@@ -220,17 +275,17 @@ export default function App() {
                     <label className="check">
                       <input type="checkbox" checked={selSet.has(c.norad)} onChange={() => toggle(c.norad)} />
                       <span className="nm">{c.name}</span>
+                      {owners?.[c.norad] && <span className="age" title={ownerName(owners[c.norad], settings.lang)}>{owners[c.norad]}</span>}
                       <span className={`age ${now - c.epochMs > 10 * 86400e3 ? 'warn-text' : ''}`}>{fmtAge(now - c.epochMs, t('h'), t('d'))}</span>
                     </label>
                   </li>
                 ))}
                 {shown.length === 0 && <li className="hint">{t('Nothing matches. Load a group or fetch by name below.')}</li>}
               </ul>
-              <p className="hint">{t('Age is the time since the element set epoch. Passes get less accurate after a few days.')}</p>
+              <p className="hint">{t('{0} matching, {1} loaded.', matches.length, catalog.length)} {t('Age is the time since the element set epoch. Passes get less accurate after a few days.')}</p>
               <div className="row">
-                {GROUPS.map((g) => (
-                  <button key={g} className="small" disabled={busyLoad} onClick={() => void load({ kind: 'group', value: g }, { force: true })}>{g}</button>
-                ))}
+                <button className="small" disabled={busyLoad || !!groups[ALL_ACTIVE]} onClick={() => void load({ kind: 'group', value: ALL_ACTIVE })}>{t('Load all active satellites')}</button>
+                {typeFilter && <button className="small" disabled={busyLoad} onClick={() => void load({ kind: 'group', value: typeFilter }, { force: true })}>{t('Refresh this type')}</button>}
               </div>
               <div className="row nowrap">
                 <input className="grow" placeholder={t('Name or NORAD id')} value={lookup} onChange={(e) => setLookup(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && onLookup()} aria-label={t('Name or NORAD id')} />
